@@ -1,0 +1,3 @@
+GITBRANCH=workshop/terraform
+GITURL=github.com/jessicamirov/devopshift-welcome.git
+GITUSERNAME=jessicamirov
