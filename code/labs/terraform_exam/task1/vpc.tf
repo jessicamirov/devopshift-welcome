@@ -3,15 +3,13 @@ provider "aws" {
 }
 
 variable "region" {
+  type = string
   default = "us-east-1"
 }
 
-variable "az1" {
-  default = "us-east-1a"
-}
-
-variable "az2" {
-  default = "us-east-1b"
+variable "az_list" {
+ type = list(string)
+ default = ["us-east-1a","us-east-1b"]
 }
 
 variable "myname" {
@@ -21,6 +19,9 @@ variable "myname" {
 
 resource "aws_vpc" "jessica-vpc" {
   cidr_block = "10.0.0.0/16"
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+
   tags = {
     Name = "${var.myname}-vpc"
   }
@@ -30,7 +31,7 @@ resource "aws_subnet" "public_ip" {
   vpc_id     = aws_vpc.jessica-vpc.id
   cidr_block = "10.0.1.0/24"
   map_public_ip_on_launch = true
-  availability_zone = var.az1
+  availability_zone = var.az_list[0]
   tags = {
     Name = "${var.myname}-public_subnet"
   }
@@ -39,7 +40,7 @@ resource "aws_subnet" "public_ip" {
 resource "aws_subnet" "private_ip" {
   vpc_id     = aws_vpc.jessica-vpc.id
   cidr_block = "10.0.2.0/24"
-  availability_zone = var.az2
+  availability_zone = var.az_list[1]
   tags = {
     Name = "${var.myname}-private_subnet"
   }
@@ -81,15 +82,13 @@ resource "aws_route_table_association" "private_rt" {
   route_table_id = aws_route_table.private_rt.id
 }
 
-# MODULE OUTPUTS
+# OUTPUTS
 output "region" {
   value = "The region is: ${var.region}"
   description = "Region"
 }
 
 output "public_ip" {
-  value       = aws_eip.jessica_eip.public_ip
+  value       = aws_subnet.public_ip.id
   description = "Public IP address allocated"
 }
-
-
