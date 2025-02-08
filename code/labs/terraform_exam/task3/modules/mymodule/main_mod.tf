@@ -1,14 +1,24 @@
-variable "vpc_cidr" {}
+variable "vpc_cidr" {
+  description = "CIDR block for VPC"
+  type        = string
+}
 
-variable "public_subnet_cidr" {}
+variable "public_subnet_count" {
+  description = "Number of public subnets to create"
+  type        = number
+  default     = 1
+}
 
-variable "private_subnet_cidr" {}
+variable "instance_type" {
+  description = "EC2 instance type"
+  type        = string
+}
 
-variable "instance_type" {}
-
-variable "assign_public_ip" {}
-
-variable "ami" {}
+variable "assign_public_ip" {
+  description = "Whether to assign public IP to EC2 instance"
+  type        = bool
+  default     = true
+}
 
 resource "aws_vpc" "my_vpc" {
   cidr_block = "10.0.0.0/16"
