@@ -1,12 +1,3 @@
-# provider "aws" {
-#   region = var.region
-# }
-
-# variable "region" {
-#   type    = string
-#   default = "us-east-1"
-# }
-
 variable "az_list" {
   type = list(string)
   default = ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"]

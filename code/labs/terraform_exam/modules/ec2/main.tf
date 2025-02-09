@@ -1,5 +1,6 @@
 resource "aws_security_group" "sg" {
   vpc_id = var.vpc_id
+  name_prefix = "${var.myname}-ec2-sg"
   description = "Allow SSH (port 22) and HTTP (port 80)"
 
   ingress {
