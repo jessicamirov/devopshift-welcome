@@ -1,18 +1,6 @@
-variable "ami" {
-  description = "Ubuntu 22.04 AMI ID"
-  type        = string
-  default     = "ami-0e1bed4f06a3b463d"
-}
-
-variable "instance_type" {
-  description = "EC2 instance type"
-  type        = string
-  default     = "t2.micro"
-}
-
 resource "aws_security_group" "sg" {
+  vpc_id = var.vpc_id
   description = "Allow SSH (port 22) and HTTP (port 80)"
-  vpc_id      = aws_vpc.jessica-vpc.id  
 
   ingress {
     description = "SSH from anywhere"
@@ -38,24 +26,17 @@ resource "aws_security_group" "sg" {
   }
 
   tags = {
-    Name = "${var.myname}-secuirty-group"
+    Name = "${var.myname}-ec2-secuirty-group"
   }
 }
 
 resource "aws_instance" "jessica-ec2" {
   ami           = var.ami
   instance_type = var.instance_type
-  subnet_id     = aws_subnet.public.id
-  associate_public_ip_address = true
-
+  associate_public_ip_address = var.assigen_public_ip
   vpc_security_group_ids = [aws_security_group.sg.id] 
-
+  subnet_id  =  var.subnet_id
   tags = {
     Name = "${var.myname}-ec2"
   }
-}
-
-output "vm_public_ip" {
-  value       = aws_instance.jessica-ec2.public_ip
-  description = "Public IP address"
 }
