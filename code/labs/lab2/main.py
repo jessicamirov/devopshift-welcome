@@ -2,8 +2,7 @@ from dataclasses import dataclass
 from fastapi import FastAPI
 
 app = FastAPI()
-server_list = ["nginx", "apache", "chrome"]
-
+servers = ["nginx", "apache", "chrome"]
 @app.get("/")
 def get_server():
     "This is our main function"
@@ -11,4 +10,8 @@ def get_server():
 
 @app.get("/servers")
 def status_server(server_name: str):
-    return server_list[server_name]
+    return servers[server_name]
+
+@app.post("/server")
+def create_server(server_name: str):
+    return server_name  
