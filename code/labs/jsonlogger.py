@@ -2,7 +2,6 @@ import logging
 import json
 import sys
 
-
 def get_server():
     try:
         server_name = input("Enter a server name: ")
