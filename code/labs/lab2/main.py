@@ -1,17 +1,25 @@
-from dataclasses import dataclass
 from fastapi import FastAPI
+from models import ServerStatusResponse, Server, add_new_server, read_server_list
 
 app = FastAPI()
-servers = ["nginx", "apache", "chrome"]
-@app.get("/")
-def get_server():
-    "This is our main function"
-    return "main"
 
-@app.get("/servers")
-def status_server(server_name: str):
-    return servers[server_name]
+
+@app.get("/server")
+def get_server(server_name: str) -> ServerStatusResponse:
+    servers = read_server_list()
+    for server in servers:
+        if server.name == server_name:
+            server_status = server.online
+            return ServerStatusResponse(
+                server_name=server_name, server_status=server_status
+            )
+    return ServerStatusResponse(
+        server_name=server_name, server_status="Did not find server"
+    )
+
 
 @app.post("/server")
-def create_server(server_name: str):
-    return server_name  
+def create_server(server_name: str) -> ServerStatusResponse:
+    new_server = Server(name=server_name, online=True, cpus=10, ram=20)
+    add_new_server(new_server)
+    return ServerStatusResponse(server_name=server_name, server_status="Created")
