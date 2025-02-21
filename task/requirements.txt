@@ -1,0 +1,4 @@
+python-terraform == 0.10.1
+Jinja2 == 3.1.5 
+boto3 == 1.36.25 
+awscli == 1.37.25
