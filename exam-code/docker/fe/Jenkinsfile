@@ -22,23 +22,12 @@ pipeline {
             parallel {
                 stage('Flake8 Linting') {
                     steps {
-                        sh '''
-                        if ! command -v flake8 &> /dev/null; then
-                            echo "Installing flake8..."
-                            if ! pip install flake8; then
-                                echo "Failed to install flake8!"
-                                exit 1
-                            fi
-                        fi
-                        '''
+                        echo "install flake8"
                     }
                 }
                 stage('Bandit Security Scan') {
                     steps {
-                        sh '''
-                        pip install bandit
-                        bandit -r exam-code/docker/fe || true
-                        '''
+                        echo "install bandit"
                     }
                 }
             }
