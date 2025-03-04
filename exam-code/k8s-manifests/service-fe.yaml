@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: frontend-service
 spec:
-  type: NodePort # No need to use LB OR BROWSE THE APPLICATION 
+  type: NodePort 
   ports:
     - port: 5002
       targetPort: 5002
