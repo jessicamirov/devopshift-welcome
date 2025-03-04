@@ -70,10 +70,10 @@ pipeline {
             steps{
                 script{
                     sh '''
-                    docker compose up -d
+                    docker-compose up -d
                     sleep 10  # Allow services to start
-                    curl -f http://localhost:5002 || exit 1  # Adjust for backend if needed
-                    docke compose down
+                    curl -f http://localhost:5003 || exit 1  # Adjust for backend if needed
+                    docker-compose down
                     '''
                 }
             }
@@ -83,8 +83,9 @@ pipeline {
                 script{
                     sh '''
                     echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
-                    docker push <your-dockerhub-username>/your-app:$BUILD_NUMBER
-                    docker push <your-dockerhub-username>/your-app:latest
+                    docker push ${DOCKER_REGISTRY}/${REPO_NAME}:${IMAGE_TAG}
+                    docker push ${DOCKER_REGISTRY}/${REPO_NAME}:latest
+
                     '''
                 }
             }
