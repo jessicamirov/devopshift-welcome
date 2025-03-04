@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/jessicamirov/devopshift-welcome/exam-code/k8s-manifests.git' 
+    repoURL: 'https://github.com/jessicamirov/devopshift-welcome/tree/workshop/argo-jenkins-exam/exam-code/k8s-manifests'
     targetRevision: HEAD
     path: k8s-manifests  # Path to your YAML files
   destination:
