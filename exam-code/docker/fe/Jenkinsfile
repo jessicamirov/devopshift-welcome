@@ -83,7 +83,7 @@ pipeline {
                     //     sleep 5
                     // done
                     // docker-compose down
-                    // '''
+                    '''
                 }
             }
         }
