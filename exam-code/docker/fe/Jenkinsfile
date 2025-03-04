@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/your-org/your-repo.git'
+                git branch: 'main', url: 'https://github.com/jessicamirov/devopshift-welcome.git'
             }
         }
 
@@ -86,12 +86,13 @@ pipeline {
                 '''
             }
         }
-    }
-    post {
-        always {
-            sh 'docker-compose down || true'
-            sh 'docker logout || true'
-            cleanWs()
+
+        stage('Cleanup') {
+            steps {
+                sh 'docker-compose down || true'
+                sh 'docker logout || true'
+                cleanWs()
+            }
         }
     }
 }
