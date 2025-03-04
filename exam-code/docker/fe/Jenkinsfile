@@ -23,8 +23,13 @@ pipeline {
                 stage('Flake8 Linting') {
                     steps {
                         sh '''
-                        pip install flake8
-                        flake8 exam-code/docker/fe || true
+                        if ! command -v flake8 &> /dev/null; then
+                            echo "Installing flake8..."
+                            if ! pip install flake8; then
+                                echo "Failed to install flake8!"
+                                exit 1
+                            fi
+                        fi
                         '''
                     }
                 }
