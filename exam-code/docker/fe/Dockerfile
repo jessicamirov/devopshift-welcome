@@ -10,4 +10,4 @@ COPY ./src .
 
 CMD ["python", "mainfe.py"]
 
-EXPOSE 5003
+EXPOSE 5002
