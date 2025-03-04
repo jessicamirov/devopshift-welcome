@@ -3,7 +3,7 @@ pipeline {
 
    environment {
        DOCKERHUB_CREDENTIALS = credentials("docker-hub-creds")
-       DOCKER_REGISTRY = 'nanoshark'
+       DOCKER_REGISTRY = 'jessicamirov'
        REPO_NAME = 'fe-exam'  
        IMAGE_TAG = "${env.BUILD_NUMBER}"
    }
