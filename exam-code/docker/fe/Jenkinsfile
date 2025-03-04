@@ -66,7 +66,7 @@ pipeline {
                 sh "docker run --rm ${DOCKER_REGISTRY}/${REPO_NAME}:${IMAGE_TAG} pytest /app/tests/"
             }
         }
-        stage('Integration Test with Docker Compose'){
+        stage('ntegration Test with Docker Compose'){
             steps{
                 script{
                     sh '''
@@ -75,14 +75,20 @@ pipeline {
                     docker-compose -f exam-code/docker/docker-compose.yaml down || true
                     docker-compose up -d
                     sleep 10 
-                    docker ps
-                    docker ps | grep -q 5002 && echo "Port 5002 is mapped and the container is running." || exit 1
-                    curl -f http://localhost:5004 || exit 1
+                    until docker ps | grep -q 5002; do
+                      sleep 2
+                    done
+                    docker ps | grep -q 5002 && echo "Port 5002 is mapped and the container is running." || return 1
+                    until curl -f http://localhost:5004; do
+                        sleep 5
+                    done
                     docker-compose down
                     '''
-                }  
-            }  
-        }  
+                }
+            }
+        }
+
+
         stage('Push to Docker Hub'){
             steps{
                 script{
