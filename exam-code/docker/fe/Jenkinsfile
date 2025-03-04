@@ -1,11 +1,6 @@
 pipeline {
-    agent {
-        docker {
-            image 'python:3.10'
-        }
-    }
+    agent any
     environment {
-        // Use withCredentials instead of credentials() for better error handling
         DOCKERHUB_CREDENTIALS = credentials('docker-hub-creds')
         DOCKER_REGISTRY = 'jessicamirov' // Replace with your actual Docker Hub username
         REPO_NAME = 'fe-exam'
@@ -14,7 +9,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                checkout scm
+                git branch: 'workshop/argo-jenkins-exam', url: 'https://github.com/jessicamirov/devopshift-welcome.git'
             }
         }
 
