@@ -71,6 +71,7 @@ pipeline {
                 script{
                     sh '''
                     echo Docker-Compose
+                    '''
                     // curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && chmod +x /usr/local/bin/docker-compose
                     // docker-compose -f exam-code/docker/docker-compose.yaml down || true
                     // docker-compose up -d
@@ -83,12 +84,9 @@ pipeline {
                     //     sleep 5
                     // done
                     // docker-compose down
-                    '''
                 }
             }
         }
-
-
         stage('Push to Docker Hub'){
             steps{
                 script{
