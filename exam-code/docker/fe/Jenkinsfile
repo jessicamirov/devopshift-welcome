@@ -9,10 +9,89 @@ pipeline {
         DOCKER_REGISTRY = 'yanivomc'
         REPO_NAME = 'fe-exam'  // Change to 'be-exam' for backend pipeline
         IMAGE_TAG = "${env.BUILD_NUMBER}"
-        
     }
     stages {
-        
-        
-        
+        stage('Clone Repository') {
+            steps {
+                git branch: 'workshop/argo-jenkins-exam', url: 'https://github.com/jessicamirov/devopshift-welcome'
+            }
         }
+
+        stage('Lint & Security Scan') {
+            parallel {
+                stage('Flake8 Linting') {
+                    steps {
+                        script {
+                            sh '''
+                            pip install flake8
+                            flake8 ${REPO_NAME}/src/mainfe.py  true  # Change to mainbe.py for backend
+                            '''
+                        }
+                    }
+                }
+                stage('Bandit Security Scan') {
+                    steps {
+                        script {
+                            sh '''
+                            pip install bandit
+                            bandit -r ${REPO_NAME}/src  true
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                script {
+                    sh "pip install -r ${REPO_NAME}/requirements.txt"
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh """
+                    docker build -t ${DOCKER_REGISTRY}/${REPO_NAME}:${IMAGE_TAG} -f ${REPO_NAME}/Dockerfile ${REPO_NAME}
+                    docker tag ${DOCKER_REGISTRY}/${REPO_NAME}:${IMAGE_TAG} ${DOCKER_REGISTRY}/${REPO_NAME}:latest
+                    """
+                }
+            }
+        }
+
+        stage('Run Tests in Container') {
+            steps {
+                script {
+                    sh "docker run --rm ${DOCKER_REGISTRY}/${REPO_NAME}:${IMAGE_TAG} pytest ${REPO_NAME}/src/tests/"
+                }
+            }
+        }
+
+        stage('Integration Test with Docker Compose') {
+            steps {
+                script {
+                    sh '''
+                    docker-compose up -d
+                    sleep 10  # Wait for services to start
+                    curl -f http://localhost:5002/ || exit 1  # Adjust this for backend if needed
+                    docker-compose down
+                    '''
+                }
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    sh """
+                    echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin
+                    docker push ${DOCKER_REGISTRY}/${REPO_NAME}:${IMAGE_TAG}
+                    docker push ${DOCKER_REGISTRY}/${REPO_NAME}:latest
+                    """
+                }
+            }
+        }
+    }
+}
