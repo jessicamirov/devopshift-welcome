@@ -1,103 +1,93 @@
 pipeline {
-    agent any
-    environment {
-        DOCKERHUB_CREDENTIALS = credentials('docker-hub-creds')
-        DOCKER_REGISTRY = 'jessicamirov' // Replace with your actual Docker Hub username
-        REPO_NAME = 'fe-exam'
-        IMAGE_TAG = "${env.BUILD_NUMBER}"
-    }
-    stages {
-        stage('Clone Repository') {
-            steps {
-                git branch: 'workshop/argo-jenkins-exam', url: 'https://github.com/jessicamirov/devopshift-welcome.git'
-            }
-        }
+   agent { label 'docker'}
 
-        stage('Lint & Security Scan') {
+   environment {
+       DOCKERHUB_CREDENTIALS = credentials("docker-hub-creds")
+       DOCKER_REGISTRY = 'nanoshark'
+       REPO_NAME = 'fe-exam'  
+       IMAGE_TAG = "${env.BUILD_NUMBER}"
+   }
+   stages {
+       stage("Clone Repository") {
+           steps {
+               git branch: 'workshop/argo-jenkins-exam', url: 'https://github.com/jessicamirov/devopshift-welcome.git'
+           }
+       }
+       stage("Lint & Security Scan"){
             parallel {
-                stage('Flake8 Linting') {
-                    steps {
-                        echo "install flake8"
+                stage("Flake8 Linting"){
+                    steps{
+                        script{
+                          sh '''
+                           if ! command -v flake8 &> /dev/null; then
+                            echo "Installing flake8..."
+                            pip install flake8
+                            fi
+                            flake8 . || true
+                          '''  
+                        }
                     }
                 }
-                stage('Bandit Security Scan') {
-                    steps {
-                        echo "install bandit"
+                stage("Bandit Security Scan"){
+                    steps{
+                       script{
+                          sh '''
+                            if ! command -v bandit &> /dev/null; then
+                            echo "Installing bandit..."
+                            pip install bandit
+                            fi  
+                            bandit -r . || true
+                          '''  
+                        } 
                     }
                 }
             }
-        }
+       }
 
-        stage('Install Dependencies') {
-            steps {
-                sh 'if [ -f exam-code/docker/fe/requirements.txt ]; then pip install -r exam-code/docker/fe/requirements.txt; fi'
+       stage('Install Dependencies'){
+            steps{
+                sh "pip install -r exam-code/docker/fe/requirements.txt"
             }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                sh """
-                cd exam-code/docker/fe
-                if [ -f Dockerfile ]; then
-                    docker build -t ${DOCKER_REGISTRY}/${REPO_NAME}:${IMAGE_TAG} .
-                    docker tag ${DOCKER_REGISTRY}/${REPO_NAME}:${IMAGE_TAG} ${DOCKER_REGISTRY}/${REPO_NAME}:latest
-                else
-                    echo "Dockerfile not found"
-                    exit 1
-                fi
-                """
-            }
-        }
-
-        stage('Run Tests in Container') {
-            steps {
-                sh """
-                if [ -d exam-code/docker/fe/tests ]; then
-                    docker run --rm ${DOCKER_REGISTRY}/${REPO_NAME}:${IMAGE_TAG} pytest tests/ || true
-                else
-                    echo "Tests directory not found, skipping tests"
-                fi
-                """
-            }
-        }
-
-        stage('Integration Test with Docker Compose') {
-            steps {
-                sh '''
-                if [ -f docker-compose.yml ]; then
-                    docker-compose up -d
-                    sleep 10  # Allow services to start
-                    curl -f http://localhost:5002 || echo "Frontend service not responding on port 5002"
-                    docker-compose down
-                else
-                    echo "docker-compose.yml not found, skipping integration test"
-                fi
-                '''
-            }
-        }
-
-        stage('Push to Docker Hub') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+       } 
+       stage('Build Docker Image'){
+           
+                steps{
+                    script{
                     sh '''
-                    echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                    docker push ${DOCKER_REGISTRY}/${REPO_NAME}:${IMAGE_TAG}
-                    docker push ${DOCKER_REGISTRY}/${REPO_NAME}:latest
+                    docker build -t ${DOCKER_REGISTRY}/${REPO_NAME}:${IMAGE_TAG} -f exam-code/docker/fe/Dockerfile exam-code/docker/fe
+                    docker tag ${DOCKER_REGISTRY}/${REPO_NAME}:${IMAGE_TAG} ${DOCKER_REGISTRY}/${REPO_NAME}:latest
+                    '''
+                    }
+                }
+        }
+
+        stage('Run Tests in Container'){
+            steps{
+                sh "docker run --rm ${DOCKER_REGISTRY}/${REPO_NAME}:${IMAGE_TAG} pytest fe/src/tests/"
+            }
+        }
+        stage('Integration Test with Docker Compose'){
+            steps{
+                script{
+                    sh '''
+                    docker compose up -d
+                    sleep 10  # Allow services to start
+                    curl -f http://localhost:5002 || exit 1  # Adjust for backend if needed
+                    docke compose down
                     '''
                 }
             }
         }
-
-        stage('Cleanup') {
-            steps {
-                sh '''
-                docker logout || true
-                if [ -f docker-compose.yml ]; then
-                    docker-compose down || true
-                fi
-                '''
-                cleanWs()
+        stage('Push to Docker Hub'){
+            steps{
+                script{
+                    sh '''
+                    echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                    docker push <your-dockerhub-username>/your-app:$BUILD_NUMBER
+                    docker push <your-dockerhub-username>/your-app:latest
+                    '''
+                }
             }
         }
-    }
+   }
 }
