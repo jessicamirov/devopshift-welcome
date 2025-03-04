@@ -7,7 +7,7 @@ pipeline {
     environment {
         DOCKERHUB_CREDENTIALS = credentials('docker-hub-creds')
         DOCKER_REGISTRY = 'YOUR DOCKERHUB USERID'
-        REPO_NAME = 'fe-exam'
+        REPO_NAME = 'be-exam'  // Changed to 'be-exam' for backend pipeline
         IMAGE_TAG = "${env.BUILD_NUMBER}"
     }
     stages {
@@ -22,22 +22,16 @@ pipeline {
                 stage('Flake8 Linting') {
                     steps {
                         sh '''
-                        if ! command -v flake8 &> /dev/null; then
-                            echo "Installing flake8..."
-                            pip install flake8
-                        fi
-                        flake8 frontend/mainfe.py
+                        pip install flake8
+                        flake8 backend/mainbe.py
                         '''
                     }
                 }
                 stage('Bandit Security Scan') {
                     steps {
                         sh '''
-                        if ! command -v bandit &> /dev/null; then
-                            echo "Installing bandit..."
-                            pip install bandit
-                        fi
-                        bandit -r frontend/mainfe.py
+                        pip install bandit
+                        bandit -r backend/mainbe.py
                         '''
                     }
                 }
@@ -46,14 +40,14 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                sh 'pip install -r frontend/requirements.txt'
+                sh 'pip install -r backend/requirements.txt'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 sh """
-                cd frontend
+                cd backend
                 docker build -t ${DOCKER_REGISTRY}/${REPO_NAME}:${IMAGE_TAG} .
                 docker tag ${DOCKER_REGISTRY}/${REPO_NAME}:${IMAGE_TAG} ${DOCKER_REGISTRY}/${REPO_NAME}:latest
                 """
@@ -71,7 +65,7 @@ pipeline {
                 sh '''
                 docker-compose up -d
                 sleep 10  # Allow services to start
-                curl -f http://localhost:5002 || exit 1
+                curl -f http://localhost:5001 || exit 1  # Adjusted port for backend
                 docker-compose down
                 '''
             }
